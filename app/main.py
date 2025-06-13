@@ -18,4 +18,4 @@ app.include_router(pokemon.router)
 
 @app.get("/", tags=["Root"])
 async def read_root():
-    return {"message": "Bem-vindo à Pokédex API! Acesse /docs para ver a documentação."}
+    return {"message": "Bem-vindo à Pokédex API!"}
