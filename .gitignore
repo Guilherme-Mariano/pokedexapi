@@ -1,0 +1,25 @@
+# Ambientes Virtuais
+venv/
+.venv/
+env/
+
+# Arquivos de cache do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Arquivos de banco de dados
+*.sqlite
+*.sqlite3
+
+# Arquivos de IDE e sistema
+.vscode/
+.idea/
+.DS_Store
+
+# Arquivos de dependências do Mac
+.Python
+
+# Arquivos de log
+*.log
