@@ -5,9 +5,9 @@ name: CI/CD Pipeline for Pokedex API
 # Gatilhos: Quando a pipeline deve rodar
 on:
   push:
-    branches: [ "main" ] # Roda em push para a branch main
+    branches: [ "pipeline-ci-cd" ] # Roda em push para a branch main
   pull_request:
-    branches: [ "main" ] # Roda ao abrir um pull request para a main
+    branches: [ "pipeline-ci-cd" ] # Roda ao abrir um pull request para a main
 
 jobs:
   # --- Job de CI: Build e Teste ---
