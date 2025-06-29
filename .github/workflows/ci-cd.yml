@@ -5,9 +5,9 @@ name: CI/CD Pipeline for Pokedex API
 # Gatilhos: Quando a pipeline deve rodar
 on:
   push:
-    branches: [ "pipeline-ci-cd" ] # Roda em push para a branch main
+    branches: [ "pipeline-ci-cd" ] # Aqui lista as branchs onde os testes devem ser realizados
   pull_request:
-    branches: [ "pipeline-ci-cd" ] # Roda ao abrir um pull request para a main
+    branches: [ "pipeline-ci-cd" ] # Engatilhado quando houver um pull request para uma dessas branches
 
 jobs:
   # --- Job de CI: Build e Teste ---
@@ -42,8 +42,10 @@ jobs:
       # 5. Roda os testes com Pytest
       - name: Run tests with Pytest
         run: |
-          # Precisamos criar um BD para os testes rodarem na pipeline
+          # Precisamos criar um BD para os testes rodarem na pipeline 
+          # Remover depois
           python app/db/create_database.py
+          # Executando os testes com pytest
           pytest
 
       # 6. Verifica se a imagem Docker pode ser construída

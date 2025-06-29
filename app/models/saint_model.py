@@ -1,10 +1,10 @@
 from sqlalchemy import Column, String, Integer, Date
-
+from app.db.database import Base
 class Santos(Base):
 
     __tablename__ = "santos"
 
-    id = Column("id", Integer, autoincrement = True)
+    id = Column("id", Integer,primary_key=True, autoincrement = True)
     nome = Column("nome", String)
     protecao = Column("proteção", String)
     festa_liturgica = Column("festa litúrgica", Date)
@@ -16,14 +16,4 @@ class Santos(Base):
     atribuicoes = Column("atribuições", String)
     # imagem = Column("imagem", )
 
-    def __init__ (self, id, nome, protecao, festa_liturgica, veneracao, local_de_nascimento, data_de_nascimento, data_de_morte, historia, atribuicoes):
-        self.id = id 
-        self.nome = nome
-        self.protecao = protecao
-        self.festa_liturgica = festa_liturgica
-        self.veneracao = veneracao
-        self.local_de_nascimento = local_de_nascimento
-        self.data_de_nascimento = data_de_nascimento
-        self.data_de_morte = data_de_morte
-        self.historia = historia
-        self.atribuicoes = atribuicoes
+    # Sqlalchemy geralmente cuida do init
