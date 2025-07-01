@@ -38,7 +38,8 @@ def get_santo_by_id_or_name_endpoint(id_or_name: str, db: Session = Depends(get_
     if db_santo is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Santo não encontrado"
+            #detail="Santo não encontrado"
+            detail="Santo encontrado"
         )
     
     return db_santo
