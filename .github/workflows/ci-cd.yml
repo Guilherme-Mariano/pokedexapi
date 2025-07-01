@@ -1,90 +1,83 @@
 # .github/workflows/ci-cd.yml
 
-name: CI/CD Pipeline for Pokedex API
+name: CI/CD Pipeline para API de Santos
 
-# Gatilhos: Quando a pipeline deve rodar
+# Gatilhos: Define quando a pipeline deve rodar
 on:
+  # Roda sempre que um push for feito para a branch main
   push:
-    branches: [ "pipeline-ci-cd" ] # Aqui lista as branchs onde os testes devem ser realizados
+    branches: [ "pipeline-ci-cd" ]
+  
+  # Roda sempre que um pull request for aberto ou atualizado para a branch main
   pull_request:
-    branches: [ "pipeline-ci-cd" ] # Engatilhado quando houver um pull request para uma dessas branches
+    branches: [ "pipeline-ci-cd" ]
 
 jobs:
   # --- Job de CI: Build e Teste ---
   build-and-test:
     name: Build, Lint & Test
-    runs-on: ubuntu-latest # A máquina virtual que será usada
+    runs-on: ubuntu-latest
 
     steps:
-      # 1. Baixa o código do repositório para a máquina virtual
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Configura o ambiente Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # 3. Instala as dependências do projeto
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          # Instala dependências da aplicação e de teste (pytest, httpx)
           pip install -r requirements.txt
-          pip install flake8 # Instala o linter
+          # Instala o linter separadamente
+          pip install flake8
 
-      # 4. Roda o Linter (Flake8) para verificar a qualidade do código
       - name: Lint with Flake8
         run: |
+          # Verifica o código por erros e estilo
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      # 5. Roda os testes com Pytest
       - name: Run tests with Pytest
-        run: |
-          # Precisamos criar um BD para os testes rodarem na pipeline 
-          # Remover depois
-          python app/db/create_database.py
-          # Executando os testes com pytest
-          pytest
+        # A MUDANÇA ESTÁ AQUI: Removemos a chamada para create_database.py
+        # Nossos arquivos de teste agora gerenciam seu próprio banco de dados em memória.
+        run: pytest
 
-      # 6. Verifica se a imagem Docker pode ser construída
       - name: Build Docker image for testing
-        run: docker build -t pokedex-api-test .
-
+        run: docker build -t santos-api-test .
 
   # --- Job de CD: Publicar a Imagem Docker ---
   publish-docker-image:
     name: Publish Docker Image
-    needs: build-and-test # Este job SÓ RODA SE o job 'build-and-test' for bem-sucedido
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' # E SÓ RODA em um push direto para a main
+    needs: build-and-test # SÓ RODA SE o job 'build-and-test' for bem-sucedido
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' # E SÓ RODA em um push para a main
 
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
-      packages: write # Permissão para escrever no GitHub Packages (GHCR)
+      packages: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. Faz o login no GitHub Container Registry (GHCR)
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }} # Token automático fornecido pelo GitHub Actions
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2. Extrai metadados (tags) para a imagem Docker
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
 
-      # 3. Constrói e envia a imagem Docker para o GHCR
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
