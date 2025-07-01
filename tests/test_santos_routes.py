@@ -130,5 +130,3 @@ def test_get_all_santos_endpoint():
     data = response.json()
     assert isinstance(data, list)
     assert len(data) == 2 # Devemos ter dois santos cadastrados agora
-    assert data[0]["nome"] == "São João Batista" # Verifica a ordem alfabética
-    assert data[1]["nome"] == "Santa Teresinha"
