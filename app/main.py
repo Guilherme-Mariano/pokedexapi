@@ -15,10 +15,9 @@ app = FastAPI(
 
 # Inclui o roteador de pokemon na aplicação principal
 app.include_router(pokemon.router)
-
+app.include_router(saint.router) 
 @app.get("/", tags=["Root"])
 async def read_root():
     #return {"message": "Bem-vindo à Pokédex API!"}
     return {"message": "Bem-vindo"}
 
-app.include_router(saint.router) 

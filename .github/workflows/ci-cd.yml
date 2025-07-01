@@ -44,7 +44,7 @@ jobs:
       - name: Run tests with Pytest
         # A MUDANÇA ESTÁ AQUI: Removemos a chamada para create_database.py
         # Nossos arquivos de teste agora gerenciam seu próprio banco de dados em memória.
-        run: pytest
+        run: python -m pytest
 
       - name: Build Docker image for testing
         run: docker build -t santos-api-test .
