@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer
-
+from app.db.database import Base
 class Usuarios(Base):
 
     __tablename__ = "usuarios"
