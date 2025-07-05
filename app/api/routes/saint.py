@@ -11,6 +11,10 @@ from app.schemas import saint_schema
 # Importa a dependência do banco de dados
 from app.api.dependencies import get_db
 
+# Dependências de autentificação
+from app.api import auth # Importe o módulo de autenticação
+from app.schemas import user_schema # Importe o schema do usuário
+
 # Cria um novo roteador.
 # O 'prefix' garante que todos os endpoints aqui comecem com /santos.
 # O 'tags' agrupa os endpoints na documentação interativa (/docs). ????????
@@ -47,7 +51,8 @@ def get_santo_by_id_or_name_endpoint(id_or_name: str, db: Session = Depends(get_
 @router.post("/", response_model=saint_schema.Santos, status_code=status.HTTP_201_CREATED)
 def create_santo_endpoint(
     santo: saint_schema.SantosCreate, # O corpo (body) da requisição, validado pelo schema de criação
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: user_schema.User = Depends(auth.get_current_user) # Nova dependência necessária para autentificar quem está tentando fazer um post
 ):
     """
     Cria um novo Santo no banco de dados com as informações fornecidas.

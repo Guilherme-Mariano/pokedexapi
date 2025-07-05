@@ -1,18 +1,10 @@
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, Integer, String
 from app.db.database import Base
-class Usuarios(Base):
 
-    __tablename__ = "usuarios"
+class User(Base):
+    __tablename__ = "users"
 
-    id = Column("id", Integer, autoincrement = True)
-    nome_de_usuario = Column("nome de usuário", String) 
-    senha = Column("senha", String)
-    hash_senha = Column("hash senha", String)
-    email = Column("email", String)
-
-    def __init__ (self, id, nome_de_usuario, senha, hash_senha, email):
-        self.id = id
-        self.nome_de_usuario = nome_de_usuario
-        self.senha = senha
-        self.hash_senha = hash_senha
-        self.email = email
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)

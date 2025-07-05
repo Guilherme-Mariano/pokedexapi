@@ -4,3 +4,6 @@ sqlalchemy
 pydantic
 pytest
 httpx
+passlib[bcrypt]
+python-jose[cryptography]
+email-validator
