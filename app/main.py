@@ -1,9 +1,16 @@
+# app/main.py
+
 from fastapi import FastAPI
 from app.db import database
-from app.api.routes import saint
-from app.api.routes import auth
-# Isso garante que as tabelas do SQLAlchemy sejam criadas quando a aplicação iniciar,
-# se elas ainda não existirem.
+
+from app.models import saint_model, user_model
+
+from app.api.routes import santos_route 
+from app.api.routes import auth_route    
+
+user_model.Base.metadata.create_all(bind=database.engine)
+saint_model.Base.metadata.create_all(bind=database.engine)
+
 
 app = FastAPI(
     title="Enciclopédia de Santos",
@@ -11,9 +18,10 @@ app = FastAPI(
     version="1.1.0"
 )
 
-app.include_router(saint.router) 
-app.include_router(auth.router)
+# Inclui os roteadores na aplicação
+app.include_router(santos_route.router) 
+app.include_router(auth_route.router)
+
 @app.get("/", tags=["Root"])
 async def read_root():
     return {"message": "Bem-vindo"}
-
