@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from app.models import user_model
 from app.schemas import user_schema
-from app.api.auth import get_password_hash # Importa a função de hashing
+from app.api.core.security import get_password_hash 
 
 def get_user_by_username(db: Session, username: str) -> Optional[user_model.User]:
     """Busca um usuário pelo nome."""
@@ -18,7 +18,7 @@ def create_user(db: Session, user: user_schema.UserCreate) -> user_model.User:
     hashed_password = get_password_hash(user.password)
     db_user = user_model.User(
         username=user.username,
-        email=user.email, # Passando o e-mail para o modelo
+        email=user.email,
         hashed_password=hashed_password
     )
     db.add(db_user)
