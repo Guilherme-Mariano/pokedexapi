@@ -50,12 +50,10 @@ def get_santo_by_id_or_name_endpoint(id_or_name: str, db: Session = Depends(get_
 
 @router.post("/", response_model=saint_schema.Santos, status_code=status.HTTP_201_CREATED)
 def create_santo_endpoint(
-    santo: saint_schema.SantosCreate, # O corpo (body) da requisição, validado pelo schema de criação
-    db: Session = Depends(get_db)
+    santo: saint_schema.SantosCreate, # O corpo (body) da requisição
+    db: Session = Depends(get_db)      # A dependência do banco de dados
 ):
     """
     Cria um novo Santo no banco de dados com as informações fornecidas.
     """
-    # A rota simplesmente passa os dados validados para a camada de serviço,
-    # que contém a lógica de criação.
     return saint_service.create_santo(db=db, santo=santo)
