@@ -5,8 +5,8 @@ from app.db import database
 
 from app.models import saint_model, user_model
 
-from app.api.routes import santos_route
-from app.api.routes import auth_route
+from app.api.routes import saint
+from app.api.routes import auth
 
 saint_model.Base.metadata.create_all(bind=database.engine)
 user_model.Base.metadata.create_all(bind=database.engine)
@@ -17,8 +17,8 @@ app = FastAPI(
     version="1.1.0"
 )
 
-app.include_router(santos_route.router)
-app.include_router(auth_route.router)
+app.include_router(saint.router)
+app.include_router(auth.router)
 
 @app.get("/", tags=["Root"])
 async def read_root():
