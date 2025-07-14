@@ -4,13 +4,13 @@ name: CI/CD Pipeline para API de Santos
 
 # Gatilhos: Define quando a pipeline deve rodar
 on:
-  # Roda sempre que um push for feito para a branch main
+  # Roda sempre que um push for feito para as branchs na lista
   push:
-    branches: [ "pipeline-ci-cd" ]
+    branches: [ "auth", "main", "pipeline-ci-cd" ]
   
-  # Roda sempre que um pull request for aberto ou atualizado para a branch main
+  # Roda sempre que um pull request for aberto ou atualizado para as branchs na lista
   pull_request:
-    branches: [ "pipeline-ci-cd" ]
+    branches: [ "auth", "main", "pipeline-ci-cd" ]
 
 jobs:
   # --- Job de CI: Build e Teste ---
@@ -43,7 +43,7 @@ jobs:
 
       - name: Run tests with Pytest
         # A MUDANÇA ESTÁ AQUI: Removemos a chamada para create_database.py
-        # Nossos arquivos de teste agora gerenciam seu próprio banco de dados em memória.
+        # banco de dados gerenciado em memória.
         run: python -m pytest
 
       - name: Build Docker image for testing

@@ -51,8 +51,7 @@ def get_santo_by_id_or_name_endpoint(id_or_name: str, db: Session = Depends(get_
 @router.post("/", response_model=saint_schema.Santos, status_code=status.HTTP_201_CREATED)
 def create_santo_endpoint(
     santo: saint_schema.SantosCreate, # O corpo (body) da requisição, validado pelo schema de criação
-    db: Session = Depends(get_db),
-    current_user: user_schema.User = Depends(auth.get_current_user) # Nova dependência necessária para autentificar quem está tentando fazer um post
+    db: Session = Depends(get_db)
 ):
     """
     Cria um novo Santo no banco de dados com as informações fornecidas.

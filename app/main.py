@@ -9,17 +9,14 @@ from app.api.routes import auth
 pokemon_model.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(
-    title="Pokédex API",
-    description="Uma API para obter informações sobre Pokémon",
+    title="Enciclopédia de Santos",
+    description="Uma API para obter informações sobre Santos Católicos",
     version="1.1.0"
 )
 
-# Inclui o roteador de pokemon na aplicação principal
-app.include_router(pokemon.router)
 app.include_router(saint.router) 
 app.include_router(auth.router)
 @app.get("/", tags=["Root"])
 async def read_root():
-    #return {"message": "Bem-vindo à Pokédex API!"}
     return {"message": "Bem-vindo"}
 
