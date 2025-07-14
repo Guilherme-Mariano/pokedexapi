@@ -6,11 +6,11 @@ name: CI/CD Pipeline para API de Santos
 on:
   # Roda sempre que um push for feito para a branch main
   push:
-    branches: [ "pipeline-ci-cd" ]
+    branches: [ "pipeline-ci-cd" , "feat/teste-demo" ]
   
   # Roda sempre que um pull request for aberto ou atualizado para a branch main
   pull_request:
-    branches: [ "pipeline-ci-cd" ]
+    branches: [ "pipeline-ci-cd" , "feat/teste-demo" ]
 
 jobs:
   # --- Job de CI: Build e Teste ---
