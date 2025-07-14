@@ -12,7 +12,6 @@ class SantosBase(BaseModel):
     data_de_nascimento: date 
     data_de_morte: date
     historia: str
-    atribuicoes: str
 
 # Herda de SantosBase e é usado para validar os dados de entrada (POST)
 class SantosCreate(SantosBase):
