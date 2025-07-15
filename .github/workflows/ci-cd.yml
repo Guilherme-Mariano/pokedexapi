@@ -42,8 +42,6 @@ jobs:
       # 5. Roda os testes com Pytest
       - name: Run tests with Pytest
         run: |
-          # Precisamos criar um BD para os testes rodarem na pipeline
-          python app/db/create_database.py
           pytest
 
       # 6. Verifica se a imagem Docker pode ser construída
