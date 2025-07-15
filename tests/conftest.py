@@ -20,32 +20,33 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 # --- Fixtures Compartilhadas ---
 
 @pytest.fixture(scope="function")
 def db_session():
     """
-    Fixture que cria as tabelas, fornece a sessão e as destrói depois.
-    Garante total isolamento entre os testes.
+    Esta fixture é o coração do isolamento de testes.
+    'scope="function"' garante que este código rode para CADA teste.
     """
-    # Cria as tabelas ANTES de cada teste
+    # Cria todas as tabelas ANTES de cada teste
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
+        # Fornece a sessão para o teste
         yield db
     finally:
+        # Executa DEPOIS que o teste termina
         db.close()
-        # Destrói as tabelas DEPOIS de cada teste
+        # Destrói todas as tabelas, deixando o banco limpo para o próximo teste
         Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture(scope="function")
 def client(db_session):
     """
-    Fixture que cria um TestClient e sobrescreve a dependência get_db
-    para usar o banco de dados de teste limpo.
+    Fixture que cria um TestClient usando o banco de dados limpo da db_session.
     """
     def override_get_db():
-        # Usa a mesma sessão fornecida pela fixture db_session
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
