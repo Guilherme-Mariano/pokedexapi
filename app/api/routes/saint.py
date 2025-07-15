@@ -1,6 +1,6 @@
 # app/api/routes/santos_route.py
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -17,7 +17,6 @@ from app.schemas import user_schema # Importe o schema do usuário
 
 # Cria um novo roteador.
 # O 'prefix' garante que todos os endpoints aqui comecem com /santos.
-# O 'tags' agrupa os endpoints na documentação interativa (/docs). ????????
 router = APIRouter(
     prefix="/santos",
     tags=["Santos"]
@@ -57,3 +56,32 @@ def create_santo_endpoint(
     Cria um novo Santo no banco de dados com as informações fornecidas.
     """
     return saint_service.create_santo(db=db, santo=santo)
+
+@router.patch("/{santo_id}", response_model=saint_schema.Santos)
+def update_santo_endpoint(
+    santo_id: int,
+    santo_data: saint_schema.SantosUpdate, # Usa o novo schema de update
+    db: Session = Depends(get_db)
+):
+    """
+    Atualiza parcialmente um Santo existente
+    """
+    updated_santo = saint_service.update_santo(db=db, santo_id=santo_id, santo_update=santo_data)
+    if updated_santo is None:
+        raise HTTPException(status_code=404, detail="Santo não encontrado")
+    return updated_santo
+
+@router.delete("/{santo_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_santo_endpoint(
+    santo_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Deleta um Santo existente
+    """
+    deleted_santo = saint_service.delete_santo(db=db, santo_id=santo_id)
+    if deleted_santo is None:
+        raise HTTPException(status_code=404, detail="Santo não encontrado")
+    
+    # Para o status 204, a resposta não deve ter corpo.
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

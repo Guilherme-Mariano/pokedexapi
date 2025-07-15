@@ -1,5 +1,6 @@
 from datetime import date
 from pydantic import BaseModel, ConfigDict
+from typing import Optional
 
 # Entrada e saída dos objetos que representarão o objeto santo
 
@@ -29,4 +30,16 @@ class Santos(SantosBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-    
+class SantosUpdate(BaseModel):
+    """
+    Schema para atualizar um Santo. Todos os campos são opcionais.
+    """
+    nome: Optional[str] = None
+    protecao: Optional[str] = None
+    festa_liturgica: Optional[date] = None
+    veneracao: Optional[str] = None
+    local_de_nascimento: Optional[str] = None
+    data_de_nascimento: Optional[date] = None
+    data_de_morte: Optional[date] = None
+    historia: Optional[str] = None
+    atribuicoes: Optional[str] = None
