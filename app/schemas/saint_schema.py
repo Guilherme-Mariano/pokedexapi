@@ -1,5 +1,6 @@
 from datetime import date
 from pydantic import BaseModel, ConfigDict
+from typing import Optional
 
 # Entrada e saída dos objetos que representarão o objeto santo
 
