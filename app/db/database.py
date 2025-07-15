@@ -1,15 +1,27 @@
+# app/db/database.py
+
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
-# Inicia a comunicação com o db
+# URL atualizada
+DATABASE_URL = "sqlite:///./app/db/saintdoom.db"
 
-DATABASE_URL = "sqlite:///./app/db/pokedex.sqlite"
+# 'engine'
+engine = create_engine(
+    DATABASE_URL,
+    # Este argumento é essencial para o SQLite em aplicações com múltiplas threads.
+    connect_args={"check_same_thread": False} 
+)
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# Criando a classe "fábrica" de sessões. A convenção é chamá-la de SessionLocal.
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Crie a Base para os seus modelos declarativos.
 Base = declarative_base()
 
+# Matendo get_db
+# garante que cada requisição tenha sua própria sessão e que ela seja fechada.
 def get_db():
     db = SessionLocal()
     try:
