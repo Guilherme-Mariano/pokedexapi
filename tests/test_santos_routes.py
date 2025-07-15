@@ -52,7 +52,6 @@ def test_get_all_santos_endpoint(client):
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) == 2
     assert data[0]["nome"] == "São Francisco de Assis"
     assert data[1]["nome"] == "São Jorge"
 

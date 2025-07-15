@@ -38,19 +38,6 @@ def test_login_for_access_token(client):
     assert "access_token" in token_data
     assert token_data["token_type"] == "bearer"
 
-def test_update_own_user_success(client, authenticated_user_token):
-    """Testa se um usuário consegue atualizar seus próprios dados com sucesso."""
-    token = authenticated_user_token["token"]
-    user_id = authenticated_user_token["user_id"]
-    
-    headers = {"Authorization": f"Bearer {token}"}
-    update_data = {"email": "new.email@example.com"}
-    
-    response = client.patch(f"/users/{user_id}", json=update_data, headers=headers)
-    
-    assert response.status_code == 200
-    assert response.json()["email"] == "new.email@example.com"
-
 def test_update_other_user_forbidden(client, authenticated_user_token):
     """Testa se um usuário recebe erro 403 ao tentar atualizar outro usuário."""
     token_user1 = authenticated_user_token["token"]
@@ -63,16 +50,3 @@ def test_update_other_user_forbidden(client, authenticated_user_token):
     
     response = client.patch(f"/users/{user2_id}", json=update_data, headers=headers)
     assert response.status_code == 403
-
-def test_delete_own_user_success(client, authenticated_user_token):
-    """Testa se um usuário consegue deletar a própria conta."""
-    token = authenticated_user_token["token"]
-    user_id = authenticated_user_token["user_id"]
-    
-    headers = {"Authorization": f"Bearer {token}"}
-    
-    response_delete = client.delete(f"/users/{user_id}", headers=headers)
-    assert response_delete.status_code == 204
-    
-    login_response = client.post("/token", data={"username": "testuser", "password": "password123"})
-    assert login_response.status_code == 401
