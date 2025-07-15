@@ -1,7 +1,5 @@
 # tests/test_santos_routes.py
 
-# As fixtures 'client' e 'db_session' são importadas automaticamente do conftest.py
-
 santo_data_exemplo = {
     "nome": "São Francisco de Assis", "protecao": "Animais e Natureza",
     "festa_liturgica": "2025-10-04", "veneracao": "Igreja Católica",
