@@ -42,7 +42,7 @@ jobs:
       # 5. Roda os testes com Pytest
       - name: Run tests with Pytest
         run: |
-          pytest
+          python -m pytest
 
       # 6. Verifica se a imagem Docker pode ser construída
       - name: Build Docker image for testing
