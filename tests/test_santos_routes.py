@@ -6,10 +6,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.main import app  # Importa a instância principal da aplicação
+from app.main import app
 from app.db.database import Base, get_db
-from app.schemas.saint_schema import SantosCreate
-import datetime
+from app.models import saint_model, user_model
 
 # --- Configuração do Banco de Dados de Teste em Memória ---
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -21,112 +20,163 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Cria as tabelas no banco de dados em memória antes de qualquer teste
-Base.metadata.create_all(bind=engine)
+# --- Fixtures do Pytest para um Ambiente de Teste Limpo e Isolado ---
 
-# --- Fixture e Sobrescrita da Dependência ---
-
-def override_get_db():
+@pytest.fixture(scope="function")
+def db_session():
     """
-    Uma função de dependência que usa o banco de dados de teste em memória.
-    Ela garante que cada teste tenha uma sessão de banco de dados limpa.
+    Fixture que cria todas as tabelas antes de cada teste e as destrói depois.
+    Isso garante total isolamento entre os testes.
     """
+    Base.metadata.create_all(bind=engine) # Cria as tabelas
     db = TestingSessionLocal()
     try:
         yield db
     finally:
         db.close()
+        Base.metadata.drop_all(bind=engine) # Destrói as tabelas
 
-# Diz à nossa aplicação FastAPI para usar o banco de dados de teste
-# em vez do banco de dados de produção/desenvolvimento durante os testes.
-app.dependency_overrides[get_db] = override_get_db
-
-# Cria um cliente de teste que pode fazer "chamadas de rede" para nossa API
-client = TestClient(app)
-
-# --- Início dos Testes das Rotas ---
-
-def test_create_santo_endpoint():
+@pytest.fixture(scope="function")
+def client(db_session):
     """
-    Testa a rota POST /santos/ para criar um novo santo.
+    Fixture que cria um TestClient e sobrescreve a dependência get_db
+    para usar o banco de dados de teste limpo fornecido pela fixture db_session.
     """
-    # 1. Prepara os dados do novo santo a ser criado
-    santo_data = {
-        "nome": "São João Batista",
-        "protecao": "Amizade",
-        "festa_liturgica": "2025-06-24",
-        "veneracao": "Igreja Católica, Igreja Ortodoxa",
-        "local_de_nascimento": "Ein Karem",
-        "data_de_nascimento": "0008-01-01", # Datas aproximadas
-        "data_de_morte": "0030-01-01",
-        "historia": "Pregador judeu e um asceta. É descrito como o precursor de Jesus.",
-        "atribuicoes": "Cordeiro, Concha"
-    }
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            db_session.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    app.dependency_overrides.clear() # Limpa a sobrescrita
+
+
+# --- Início dos Testes das Rotas (agora recebem a fixture 'client') ---
+
+# Dados de exemplo que podemos reutilizar
+santo_data_exemplo = {
+    "nome": "São Francisco de Assis", "protecao": "Animais e Natureza",
+    "festa_liturgica": "2025-10-04", "veneracao": "Igreja Católica",
+    "local_de_nascimento": "Assis, Itália", "data_de_nascimento": "1182-01-01",
+    "data_de_morte": "1226-10-03", "historia": "Fundador da ordem dos Franciscanos.",
+    "atribuicoes": "Pássaros, Lobo"
+}
+
+def test_create_santo_endpoint(client):
+    """Testa a criação de um santo com sucesso."""
+    response = client.post("/santos/", json=santo_data_exemplo)
     
-    # 2. Faz a requisição POST para o endpoint
-    response = client.post("/santos/", json=santo_data)
-    
-    # 3. Verifica a resposta
     assert response.status_code == 201, response.text
-    
     data = response.json()
-    assert data["nome"] == santo_data["nome"]
-    assert data["protecao"] == santo_data["protecao"]
+    assert data["nome"] == santo_data_exemplo["nome"]
     assert "id" in data
-    assert isinstance(data["id"], int)
 
-def test_get_santo_by_id_endpoint():
-    """
-    Testa a rota GET /santos/{id} para buscar um santo pelo ID.
-    """
-    # Usaremos o santo criado no teste anterior, que terá o ID 1,
-    # pois o banco de dados é recriado para cada sessão de teste.
-    response = client.get("/santos/1")
+def test_get_santo_by_id_endpoint(client):
+    """Testa a busca de um santo por ID."""
+    # 1. Cria um santo primeiro para garantir que ele exista
+    response_create = client.post("/santos/", json=santo_data_exemplo)
+    assert response_create.status_code == 201
+    santo_id = response_create.json()["id"]
+
+    # 2. Agora, busca por esse ID
+    response_get = client.get(f"/santos/{santo_id}")
+    assert response_get.status_code == 200
+    data = response_get.json()
+    assert data["id"] == santo_id
+    assert data["nome"] == santo_data_exemplo["nome"]
+
+def test_get_santo_by_name_endpoint(client):
+    """Testa a busca de um santo pelo nome (case-insensitive)."""
+    # 1. Cria o santo
+    client.post("/santos/", json=santo_data_exemplo)
+    
+    # 2. Busca pelo nome com letras minúsculas
+    response = client.get("/santos/são francisco de assis")
     
     assert response.status_code == 200, response.text
     data = response.json()
-    assert data["id"] == 1
-    assert data["nome"] == "São João Batista"
+    assert data["nome"] == "São Francisco de Assis"
 
-def test_get_santo_by_name_endpoint():
-    """
-    Testa a rota GET /santos/{name} para buscar um santo pelo nome.
-    """
-    response = client.get("/santos/são joão batista") # Testando case-insensitivity
+def test_get_all_santos_endpoint(client):
+    """Testa a listagem de todos os santos."""
+    # 1. Cria dois santos para popular a lista
+    client.post("/santos/", json=santo_data_exemplo)
     
-    assert response.status_code == 200, response.text
-    data = response.json()
-    assert data["nome"] == "São João Batista"
-    assert data["id"] == 1
-
-def test_get_santo_not_found():
-    """
-    Testa se a API retorna 404 para um santo que não existe.
-    """
-    response = client.get("/santos/999")
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Santo não encontrado"}
-
-def test_get_all_santos_endpoint():
-    """
-    Testa a rota GET /santos/ para listar todos os santos.
-    """
-    # Primeiro, vamos criar um segundo santo para garantir que a lista funcione
     client.post("/santos/", json={
-        "nome": "Santa Teresinha",
-        "protecao": "Missões, Floristas",
-        "festa_liturgica": "2025-10-01",
-        "veneracao": "Igreja Católica",
-        "local_de_nascimento": "Alençon, França",
-        "data_de_nascimento": "1873-01-02",
-        "data_de_morte": "1897-09-30",
-        "historia": "Conhecida como Santa Teresa do Menino Jesus e da Santa Face.",
-        "atribuicoes": "Rosas"
+        "nome": "São Jorge",
+        "protecao": "Soldados, Escoteiros",
+        "festa_liturgica": "2025-04-23",
+        "veneracao": "Igreja Católica, Igreja Ortodoxa, Comunhão Anglicana",
+        "local_de_nascimento": "Capadócia, Turquia",
+        "data_de_nascimento": "0275-01-01",
+        "data_de_morte": "0303-04-23",
+        "historia": "Lendário soldado romano e mártir cristão, famoso por ter matado o dragão.",
+        "atribuicoes": "Dragão, Lança, Cavalo Branco"
     })
     
+    # 2. Busca a lista completa
     response = client.get("/santos/")
     
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) == 2 # Devemos ter dois santos cadastrados agora
+    assert len(data) == 2
+    # O serviço ordena por nome, então Francisco vem antes de Jorge.
+    assert data[0]["nome"] == "São Francisco de Assis"
+    assert data[1]["nome"] == "São Jorge"
+
+def test_get_santo_not_found(client):
+    """Testa se a API retorna 404 para um santo que não existe."""
+    response = client.get("/santos/9999")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Santo não encontrado"
+
+def test_update_santo_endpoint(client):
+    """Testa a atualização parcial de um santo com sucesso."""
+    # 1. Cria o santo que será atualizado
+    response_create = client.post("/santos/", json=santo_data_exemplo)
+    santo_id = response_create.json()["id"]
+
+    # 2. Define os dados da atualização parcial
+    update_data = {"protecao": "Protetor da Ecologia", "historia": "Nova história atualizada."}
+
+    # 3. Faz a requisição PATCH
+    response_update = client.patch(f"/santos/{santo_id}", json=update_data)
+    
+    # 4. Verifica a resposta
+    assert response_update.status_code == 200
+    data = response_update.json()
+    assert data["id"] == santo_id
+    assert data["protecao"] == "Protetor da Ecologia"
+    assert data["historia"] == "Nova história atualizada."
+    assert data["nome"] == santo_data_exemplo["nome"]
+
+def test_update_santo_not_found(client):
+    """Testa se a atualização de um santo inexistente retorna 404."""
+    response = client.patch("/santos/9999", json={"nome": "Fantasma"})
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Santo não encontrado"
+
+def test_delete_santo_endpoint(client):
+    """Testa a deleção de um santo com sucesso."""
+    # 1. Cria o santo que será deletado
+    response_create = client.post("/santos/", json=santo_data_exemplo)
+    santo_id = response_create.json()["id"]
+    
+    # 2. Deleta o santo
+    response_delete = client.delete(f"/santos/{santo_id}")
+    
+    # 3. Verifica a resposta da deleção
+    assert response_delete.status_code == 204
+    
+    # 4. Verificação extra: tenta buscar o santo deletado, deve retornar 404
+    response_get = client.get(f"/santos/{santo_id}")
+    assert response_get.status_code == 404
+
+def test_delete_santo_not_found(client):
+    """Testa se a deleção de um santo inexistente retorna 404."""
+    response = client.delete("/santos/9999")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Santo não encontrado"
