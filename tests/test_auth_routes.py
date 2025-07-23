@@ -90,5 +90,5 @@ def test_update_other_user_forbidden(client):
     response = client.patch(f"/users/{user_b_id}", json=update_data, headers=headers)
     
     # 4. Verificação
-    #assert response.status_code == 403
-    assert response.status_code == 200
+    assert response.status_code == 403
+    #assert response.status_code == 200
