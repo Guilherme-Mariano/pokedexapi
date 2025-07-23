@@ -2,7 +2,7 @@
 
 name: CI/CD Pipeline for Pokedex API
 
-# Gatilhos: Quando a pipeline deve rodar
+# Gatilhos:
 on:
   push:
     branches: [ "master" ] # Roda em push para a branch main
@@ -13,7 +13,7 @@ jobs:
   # --- Job de CI: Build e Teste ---
   build-and-test:
     name: Build, Lint & Test
-    runs-on: ubuntu-latest # A máquina virtual que será usada
+    runs-on: ubuntu-latest # VM
 
     steps:
       # 1. Baixa o código do repositório para a máquina virtual
